@@ -1543,13 +1543,14 @@
               <input type="date" id="f_date" onchange="onFormDateChange()">
               <div class="hint2" id="f_date_warn" style="display:none;"></div></div>
             <div class="field"><label>협력업체명 <span class="req">*</span></label>
-              <input type="text" id="f_company" placeholder="예: (주)한국건설" list="dl_company" autocomplete="off" onblur="checkCompanyTypo()">
+              <select id="f_company_sel" onchange="onCompanySelect(this.value)"></select>
+              <input type="text" id="f_company" placeholder="업체명을 직접 입력하세요" list="dl_company" autocomplete="off" onblur="checkCompanyTypo()" style="display:none;margin-top:8px;">
               <div class="hint2" id="companyTypoHint" style="display:none;"></div></div>
             <div class="field"><label>작업명 <span class="req">*</span></label>
               <input type="text" id="f_taskname" placeholder="예: 101동 3층 슬라브 철근 배근"></div>
           <div class="field"><label>공종 <span class="req">*</span></label>
               <select id="f_worktype" onchange="onWorktypeChange()">
-                <option>골조</option><option>토목</option><option>철근</option><option>거푸집</option>
+                <option>철거</option><option>골조</option><option>토목</option><option>철근</option><option>거푸집</option>
                 <option>비계</option><option>양중</option><option>마감</option><option>설비</option>
                 <option>전기</option><option>직접입력</option>
               </select>
@@ -3224,7 +3225,7 @@ function onMapAreaTap(e){
 function refreshInputSuggestions(){
   const esc = (s)=>String(s).replace(/"/g,'&quot;');
   const byKo = (a,b)=>a.localeCompare(b,'ko');
-  const companies = [...new Set(['센트로건설(주)', ...state.tasks.map(t=>t.company)].filter(Boolean))].sort(byKo);
+  const companies = [...new Set([...SUBCONTRACTORS, ...state.tasks.map(t=>t.company)].filter(Boolean))].sort(byKo);
   const people = [...new Set(
     state.tasks.flatMap(t=>[t.director, t.supervisorCo, t.guardName]).filter(Boolean)
   )].sort(byKo);
@@ -3304,7 +3305,7 @@ function recentTaskPool(){
 }
 function renderRecentTaskList(){
   const pool = recentTaskPool();
-  const names = [...new Set(pool.map(t=>t.company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
+  const names = [...new Set([...SUBCONTRACTORS, ...pool.map(t=>t.company)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
   if(_recentCompany && !names.includes(_recentCompany)) _recentCompany = '';
   const sel = document.getElementById('recentCompanyFilter');
   if(sel){
@@ -3402,10 +3403,49 @@ document.addEventListener('click', e=>{
 });
 /* 업체 범위 — 드롭다운에서 한 번 고르면 이 기기에 기억되어, 대시보드·작업현황·동별보기가 그 업체만 보여주고
    작업 등록 폼의 업체명도 미리 채워집니다. "전체 협력업체"를 고르면 풀립니다. */
+/* 현장 협력업체 목록 — 새 업체가 들어오면 여기에 추가하세요. 대시보드 업체 선택·작업 등록 업체명 목록에 항상 나옵니다. */
+const SUBCONTRACTORS = ['센트로건설(주)'];
+/* 업체 드롭다운 공통: 현장 협력업체 + 지금까지 등록된 업체 */
+function companyChoices(){
+  return [...new Set([...SUBCONTRACTORS, ...(state.tasks||[]).map(t=>t.company)].filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
+}
+function companyOptionsHtml(cur, etc){
+  const list = companyChoices(); cur = cur || '';
+  const isEtc = etc || (cur && !list.includes(cur));
+  return `<option value=""${!cur && !isEtc ? ' selected' : ''}>업체 선택</option>`
+    + list.map(n=>`<option value="${esc(n)}"${n===cur && !isEtc ? ' selected' : ''}>${esc(n)}</option>`).join('')
+    + `<option value="__etc"${isEtc ? ' selected' : ''}>직접 입력</option>`;
+}
+/* 작업 등록 폼 — 드롭다운(f_company_sel)과 실제 값 칸(f_company)을 맞춰 줍니다 */
+let _coEtc = false;
+function onCompanySelect(v){
+  const inp = document.getElementById('f_company');
+  if(v === '__etc'){ _coEtc = true; inp.value = ''; inp.style.display = ''; inp.focus(); }
+  else { _coEtc = false; inp.value = v; inp.style.display = 'none'; }
+  inp.dispatchEvent(new Event('input', { bubbles:true }));
+  try{ if(typeof onCompanyInput === 'function') onCompanyInput(); }catch(e){}
+}
+function syncCompanySelect(){
+  const sel = document.getElementById('f_company_sel'), inp = document.getElementById('f_company'); if(!sel || !inp) return;
+  const v = (inp.value||'').trim(), list = companyChoices();
+  const etc = _coEtc || (v && !list.includes(v));
+  const want = etc ? '__etc' : v;
+  const sig = list.join('|') + '#' + want;
+  if(sel._sig !== sig){ sel.innerHTML = companyOptionsHtml(v, etc); sel._sig = sig; }
+  if(sel.value !== want) sel.value = want;
+  inp.style.display = etc ? '' : 'none';
+  if(!v && !_coEtc) inp.style.display = 'none';
+}
+setInterval(()=>{ try{ syncCompanySelect(); }catch(e){} }, 400);
+function attCompanySelect(i, v){
+  const r = state.attendanceDraft[i]; if(!r) return;
+  if(v === '__etc'){ r._etc = true; r.company = ''; } else { r._etc = false; r.company = v; }
+  renderAttendanceRows();
+}
 function scoped(list){ return state.dashCompany ? list.filter(t=>t.company===state.dashCompany) : list; }
 function renderScope(list){
   const sel = document.getElementById('scopeCompany'); if(!sel) return;
-  const names = [...new Set(list.map(t=>t.company).filter(Boolean))];
+  const names = [...new Set([...SUBCONTRACTORS, ...list.map(t=>t.company)].filter(Boolean))];
   if(state.dashCompany && !names.includes(state.dashCompany)) names.push(state.dashCompany);   // 오늘 작업이 없어도 내 업체는 목록에 남김
   names.sort((a,b)=>a.localeCompare(b,'ko'));
   sel.innerHTML = `<option value="">전체 협력업체 (${list.length}건)</option>` + names.map(n=>{
@@ -4211,6 +4251,7 @@ function collectFormTaskFields(){
 }
 
 function resetTaskForm(){
+  _coEtc = false;
   document.getElementById('taskForm').reset();
   state.formBuildingSel=[]; state.formFloorSel=[]; state.formRiskSel=[];
   state.formRiskGrade=false; state.formHazmat=false; state.formWorkplan=false; state.formGuard=true;
@@ -5929,10 +5970,10 @@ function renderAttendanceRows(){
   el.innerHTML = state.attendanceDraft.map((r,i)=>`
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
       <span style="width:20px;text-align:center;font-weight:600;color:var(--ink-400);font-size:12.5px;flex-shrink:0;">${i+1}</span>
-      <input type="text" placeholder="업체명" value="${(r.company||'').replace(/"/g,'&quot;')}"
-        list="dl_company" autocomplete="off"
-        oninput="updateAttendanceDraft(${i},'company',this.value)"
-        style="flex:2;min-width:0;padding:9px 10px;border-radius:8px;border:1.5px solid var(--line);font-size:13.5px;font-family:inherit;">
+      <span style="flex:2;min-width:0;display:flex;flex-direction:column;gap:4px;">
+        <select onchange="attCompanySelect(${i},this.value)" style="width:100%;padding:9px 6px;border-radius:8px;border:1.5px solid var(--line);font-size:13.5px;font-family:inherit;background:#fff;">${companyOptionsHtml(r.company, r._etc)}</select>
+        ${(r._etc || (r.company && !companyChoices().includes(r.company))) ? `<input type="text" placeholder="업체명 입력" value="${(r.company||'').replace(/"/g,'&quot;')}" list="dl_company" autocomplete="off" oninput="updateAttendanceDraft(${i},'company',this.value)" style="width:100%;padding:9px 10px;border-radius:8px;border:1.5px solid var(--line);font-size:13.5px;font-family:inherit;">` : ''}
+      </span>
       <input type="number" placeholder="총 인원" min="0" value="${r.workers===''?'':r.workers}"
         oninput="updateAttendanceDraft(${i},'workers',this.value)"
         style="flex:1;min-width:0;padding:9px 10px;border-radius:8px;border:1.5px solid var(--line);font-size:13.5px;font-family:inherit;">
@@ -6374,7 +6415,7 @@ function onPushButton(){
   if(subId && Notification.permission === 'granted'){ unsubscribePush(); return; }
   // 소속 선택 시트
   const sel = document.getElementById('pushCompanySelect');
-  const names = [...new Set(state.tasks.map(t=>t.company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
+  const names = companyChoices();
   sel.innerHTML = '<option value="">소속 선택 안 함 (전체 공지만)</option><option value="HDC">원청 (HDC)</option>' + names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
   document.getElementById('pushIosHint').style.display = (isIOS() && !isStandalone()) ? '' : 'none';
   document.getElementById('pushSubscribeBtn').disabled = isIOS() && !isStandalone();
