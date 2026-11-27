@@ -1367,7 +1367,14 @@
 .map-mark{position:absolute;transform:translate(-50%,-50%);z-index:3;pointer-events:none;font-weight:800;font-size:11px;line-height:1;padding:3px 6px;border-radius:4px;white-space:nowrap}
   .map-mark.gate{background:#E01226;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
   .map-mark.shop{background:#FFE600;color:#111}
-  .topbanner{display:block;width:100%;height:auto;max-height:200px;object-fit:contain;object-position:center;background:#fff}
+  .topbanner{display:block;width:100%;height:auto;background:#fff}
+  .slimbanner{display:none}
+  @media (min-width:700px){
+    .topbanner{display:none}
+    .slimbanner{display:block;position:relative;height:120px;overflow:hidden;background:linear-gradient(90deg,#fff 55%,#E3EDF7 100%);border-bottom:3px solid #E01226}
+    .slimbanner .sb-t{position:absolute;left:32px;top:50%;transform:translateY(-50%);height:62px}
+    .slimbanner .sb-b{position:absolute;right:-6px;bottom:0;height:150%}
+  }
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   /* 묶음 인원 핀 */
   .pin.cluster{transform:translate(-50%,-50%) !important;z-index:4}
@@ -1397,7 +1404,7 @@
 <div id="app">
 
   <div class="topbar" onclick="switchView('dashboard')" style="cursor:pointer;">
-    <img class="topbanner" src="./banner.jpg" alt="IPARK 현대산업개발 · S.O.S 전주 오성대우 주택재건축 정비사업 · 일일 고위험 작업 안전관리">
+    <div class="slimbanner" aria-hidden="true"><img class="sb-b" src="./banner_bld.png" alt=""><img class="sb-t" src="./banner_text.png" alt=""></div><img class="topbanner" src="./banner.jpg" alt="IPARK 현대산업개발 · S.O.S 전주 오성대우 주택재건축 정비사업 · 일일 고위험 작업 안전관리">
     <div class="sr-only">
       <h1 id="siteTitle" data-site="전주 오성대우 주택재건축 정비사업"><span class="brand-mark"><b class="m1">S</b><i>.</i><b class="m2">O</b><i>.</i><b class="m3">S</b></span><span class="brand-site">전주 오성대우</span></h1>
       <div class="sub">일일 고위험 작업 안전관리 <span class="sub-tag">Safety On System</span></div>

@@ -1,5 +1,5 @@
 // 빌드마다 캐시 이름이 바뀌므로, 재배포 시 예전 캐시가 자동으로 폐기됩니다.
-const CACHE_NAME = 'jeonju-osung-safety-202611271005';
+const CACHE_NAME = 'jeonju-osung-safety-202611271030';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,7 +7,7 @@ const APP_SHELL = [
   './map.jpg',
   './checklist_template.xlsx',
   './logo.png',
-  './banner.jpg',
+  './banner.jpg','./banner_text.png','./banner_bld.png',
   './icon-192.png',
   './icon-512.png',
   './manifest.json'
