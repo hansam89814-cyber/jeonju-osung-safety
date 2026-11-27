@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>🆘 긴급 도움 요청 · 전주 오성대우</title>
+<meta name="description" content="전주 오성대우 주택재건축 정비사업 현장 긴급 도움 요청">
+<meta property="og:title" content="🆘 긴급 도움 요청 · 전주 오성대우 주택재건축 정비사업">
+<meta property="og:description" content="위급할 때 버튼을 누르면 현장 안전보건 담당자에게 위치가 전송됩니다.">
+<meta name="theme-color" content="#0F1B2D">
+<link rel="icon" href="./icon-192.png">
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<style>
+:root{--red:#E01226;--red-d:#C40F22;--red-l:#FDECEE;--ink:#111;--ink2:#555;--ink3:#888;--line:#E5E5E5;--bg:#F5F5F4}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif}
+body{min-height:100vh}
+.wrap{max-width:480px;margin:0 auto;background:#fff;min-height:100vh;padding-bottom:28px}
+header{background:linear-gradient(135deg,#0F1B2D,#1E3350);color:#fff;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:inline-flex;align-items:center;gap:7px;flex:none}
+.brand img{height:28px;width:auto}
+.brand span{line-height:1}
+.brand b{display:block;font-weight:900}
+.brand .w1{font-size:15px;letter-spacing:1.5px}
+.brand .w2{font-size:10px;font-weight:800;margin-top:3px}
+header .tt{text-align:right;line-height:1.3;min-width:0}
+header .tt b{display:block;font-size:18px;font-weight:900}
+header .tt span{font-size:11px;color:#A5B4C8;font-weight:600}
+.langs{display:flex;gap:4px;flex-wrap:wrap;padding:8px 14px 0;justify-content:flex-end}
+.langs button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:4px 9px;font-size:12px;color:var(--ink2);font-weight:600}
+.langs button.on{background:var(--red);border-color:var(--red);color:#fff}
+.pad{padding:14px 16px}
+h2{font-size:21px;font-weight:900;margin:6px 0 4px}
+.muted{font-size:13px;color:var(--ink2);line-height:1.5;margin:0 0 12px}
+label.l{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+label.l .req{color:var(--red)}
+input,select{width:100%;font-size:16px;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--red)}
+.box{background:#F7F7F6;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.65;color:#333;margin-top:14px}
+.box b{color:var(--ink)}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin:14px 0 4px;line-height:1.45;font-weight:600}
+.chk input{width:22px;height:22px;flex:none;margin:0;accent-color:var(--red)}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:15px;font-size:17px;font-weight:800;background:var(--red);color:#fff;text-align:center;text-decoration:none;font-family:inherit;cursor:pointer}
+.btn:disabled{opacity:.4}
+.btn.g{background:#F1F1F0;color:#333}
+.btn.o{background:#fff;color:var(--red);border:1.5px solid var(--red)}
+.err{color:var(--red);font-size:13px;font-weight:700;margin-top:8px;display:none}
+.who{text-align:center;font-size:13px;color:var(--ink2);margin-top:4px}
+.who a{color:var(--ink3);margin-left:6px}
+.sosbtn{position:relative;width:168px;height:168px;border-radius:50%;margin:34px auto 30px;border:0;background:radial-gradient(circle at 50% 40%,#FF3B4E,var(--red-d));color:#fff;display:grid;place-items:center;text-align:center;font-weight:900;box-shadow:0 0 0 9px var(--red-l),0 0 0 18px #FEF5F6;user-select:none;-webkit-user-select:none;touch-action:none;font-family:inherit}
+.sosbtn .big{font-size:40px;letter-spacing:2px;line-height:1}
+.sosbtn small{display:block;font-size:13px;font-weight:700;margin-top:6px}
+.sosbtn svg{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);transform:rotate(-90deg);pointer-events:none}
+.sosbtn svg circle{fill:none;stroke:#fff;stroke-width:7;stroke-linecap:round;stroke-dasharray:691;stroke-dashoffset:691}
+.sosbtn.hold{transform:scale(.97)}
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.kinds button{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:12px 6px;text-align:center;font-size:14px;font-weight:700;color:var(--ink);font-family:inherit}
+.kinds button.on{border-color:var(--red);background:var(--red-l);color:var(--red-d)}
+.sel{display:flex;gap:8px;margin-top:8px}
+.sel select{flex:1;text-align:center;text-align-last:center;-moz-text-align-last:center}
+.hint{text-align:center;font-size:12.5px;color:var(--ink3);margin-top:10px;line-height:1.5}
+.okc{width:92px;height:92px;border-radius:50%;background:#16A34A;color:#fff;font-size:50px;display:grid;place-items:center;margin:24px auto 12px}
+.okc.wait{background:var(--red);animation:pl 1.4s infinite}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(224,18,38,.6)}100%{box-shadow:0 0 0 26px rgba(224,18,38,0)}}
+.st{border-radius:12px;padding:13px 14px;font-size:14px;line-height:1.55;margin:14px 0}
+.st.w{background:#FEF3C7;color:#92400E}.st.g{background:#DCFCE7;color:#166534}.st.d{background:#E0E7FF;color:#3730A3}
+.calls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.calls a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:12px;padding:13px 6px;background:var(--red);color:#fff;text-decoration:none;font-weight:800;font-size:14.5px;min-height:62px;text-align:center}
+.calls a small{font-weight:600;font-size:11.5px;opacity:.9}
+.calls a.s{background:#fff;color:var(--red-d);border:1.5px solid var(--red)}
+.sec{font-size:13px;font-weight:800;color:var(--ink2);margin:18px 0 4px}
+.loc{font-size:12.5px;color:var(--ink3);text-align:center;margin-top:4px}
+.view{display:none}.view.on{display:block}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;display:none;z-index:9;max-width:90%;text-align:center}
+.offline{background:#FEF3C7;color:#92400E;font-size:12.5px;padding:8px 14px;display:none;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><img src="./logo_mark.png" alt=""><span><b class="w1">IPARK</b><b class="w2">현대산업개발</b></span></div>
+    <div class="tt"><b data-t="title">긴급 도움 요청</b><span>전주 오성대우 주택재건축 정비사업</span></div>
+  </header>
+  <div class="offline" id="offline" data-t="offline">서버 연결 중… 잠시만 기다려 주세요. 급하면 아래 전화 버튼을 누르세요.</div>
+  <div class="langs" id="langs"></div>
+
+  <!-- 1. 동의 -->
+  <section class="view pad" id="vConsent">
+    <h2 data-t="cTitle">긴급 위치 전송 동의</h2>
+    <p class="muted" data-t="cDesc">위급할 때 빠르게 도움을 드리기 위한 기능이에요. 처음 한 번만 입력하면 돼요.</p>
+    <label class="l" for="fName"><span data-t="name">이름</span> <span class="req">*</span></label>
+    <input id="fName" autocomplete="name" data-ph="namePh" placeholder="예) 홍길동">
+    <label class="l" for="fCo"><span data-t="company">소속 업체</span> <span class="req">*</span></label>
+    <select id="fCo"></select>
+    <input id="fCoEtc" data-ph="coEtcPh" placeholder="업체명 입력" style="display:none;margin-top:8px">
+    <label class="l" for="fPhone"><span data-t="phone">내 전화번호</span> <span style="color:var(--ink3);font-weight:500" data-t="optional">(선택)</span></label>
+    <input id="fPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000">
+    <div class="box" data-t="cBox" data-html="1">• <b>SOS 버튼을 누를 때만</b> 위치를 보내요. 평소에는 위치를 수집하지 않아요.<br>• 받는 사람: 원청 안전보건 담당자, 협력업체 관리자<br>• 보내는 정보: 이름, 업체, 전화번호(입력 시), 누른 시각, 위치<br>• 보관: 조치 완료 후 30일 뒤 자동 삭제<br>• 동의하지 않아도 불이익은 없어요. 동의하지 않으면 전화 버튼만 쓸 수 있어요.</div>
+    <label class="chk"><input type="checkbox" id="fAgree"><span data-t="agree">위 내용을 이해했고, 긴급 시 위치 전송에 동의합니다.</span></label>
+    <div class="err" id="cErr"></div>
+    <button class="btn" id="cOk" style="margin-top:12px" data-t="cOk">동의하고 시작</button>
+    <p class="hint" data-t="cHint">다음에 폰에서 '위치 허용' 창이 뜨면 [허용]을 눌러 주세요.</p>
+    <button class="btn g" id="cSkip" style="margin-top:10px" data-t="cSkip">동의하지 않고 전화만 하기</button>
+  </section>
+
+  <!-- 2. 긴급 버튼 -->
+  <section class="view pad" id="vMain">
+    <div class="who"><span id="whoTxt"></span><a href="#" id="editMe" data-t="edit">정보 변경</a></div>
+    <button type="button" class="sosbtn" id="sosBtn" aria-label="SOS">
+      <svg viewBox="0 0 222 222"><circle cx="111" cy="111" r="110" id="ring"/></svg>
+      <div><div class="big">SOS</div><small data-t="hold">3초 길게 누르기</small></div>
+    </button>
+    <div class="kinds" id="kinds"></div>
+    <div class="sel"><select id="fB"></select><select id="fF"></select></div>
+    <p class="hint" data-t="mHint">급하면 종류·위치를 고르지 않고 바로 눌러도 전송돼요.</p>
+    <div class="sec" data-t="callSec">📞 바로 전화하기</div>
+    <div class="calls" id="calls1"></div>
+  </section>
+
+  <!-- 3. 전송 완료 -->
+  <section class="view pad" id="vSent" style="text-align:center">
+    <div class="okc wait" id="sentIcon">!</div>
+    <h2 id="sentTitle" data-t="sentTitle">도움 요청을 보냈어요</h2>
+    <div class="muted" id="sentMeta" style="margin:0"></div>
+    <div class="loc" id="sentLoc"></div>
+    <div class="st w" id="sentSt" style="text-align:left"></div>
+    <div class="sec" style="text-align:left" data-t="callSec">📞 바로 전화하기</div>
+    <div class="calls" id="calls2"></div>
+    <button class="btn g" id="cancelBtn" style="margin-top:14px" data-t="cancel">잘못 눌렀어요 — 요청 취소</button>
+    <button class="btn o" id="againBtn" style="margin-top:10px;display:none" data-t="again">처음 화면으로</button>
+  </section>
+
+  <!-- 동의 안 함: 전화만 -->
+  <section class="view pad" id="vCallOnly">
+    <h2 data-t="callOnlyTitle">📞 바로 전화하기</h2>
+    <p class="muted" data-t="callOnlyDesc">위치 전송에 동의하지 않아 전화만 할 수 있어요. 위치 전송을 쓰려면 아래 버튼을 눌러 동의해 주세요.</p>
+    <div class="calls" id="calls3"></div>
+    <button class="btn o" id="toConsent" style="margin-top:16px" data-t="toConsent">위치 전송 동의하기</button>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── 설정 ───────────────────────────────────────── */
+const firebaseConfig = {
+  apiKey: "AIzaSyDXLnYaDbKOGyFoOtNdJwTiwpmzASVRcTU",
+  authDomain: "jeonju-osung-ipark.firebaseapp.com",
+  databaseURL: "https://jeonju-osung-ipark-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "jeonju-osung-ipark",
+  storageBucket: "jeonju-osung-ipark.firebasestorage.app",
+  messagingSenderId: "14870179787",
+  appId: "1:14870179787:web:3a4c7f6a6e6b903ffa104e"
+};
+/* 전화 버튼 (번호는 화면에 표시하지 않음). 바꾸려면 여기만 고치세요. */
+const CALLS = [
+  { k:'health', tel:'01040733889' },
+  { k:'safety', tel:'01079179614' },
+  { k:'ssk',    tel:'01065068415' },
+  { k:'subBoss',tel:'01037215025' }
+];
+const COMPANIES = ['센트로건설(주)'];
+const BUILDINGS = ['101동','102동','103동','105동','106동','107동','108동','109동','상가'];
+const FLOORS = ['지하층','1층','2층','3층','4층','5층','외부(동 주변)'];
+const KINDS = ['hurt','sick','danger','etc'];
+const LS = { me:'sosMe_v1', lang:'sosLang_v1', active:'sosActive_v1', dev:'sosDevice_v1' };
+
+/* ── 번역 ───────────────────────────────────────── */
+const T = {
+ ko:{title:'긴급 도움 요청',offline:'서버 연결 중… 잠시만 기다려 주세요. 급하면 아래 전화 버튼을 누르세요.',cTitle:'긴급 위치 전송 동의',cDesc:'위급할 때 빠르게 도움을 드리기 위한 기능이에요. 처음 한 번만 입력하면 돼요.',name:'이름',namePh:'예) 홍길동',company:'소속 업체',coEtc:'기타 (직접 입력)',coEtcPh:'업체명 입력',phone:'내 전화번호',optional:'(선택)',
+  cBox:'• <b>SOS 버튼을 누를 때만</b> 위치를 보내요. 평소에는 위치를 수집하지 않아요.<br>• 받는 사람: 원청 안전보건 담당자, 협력업체 관리자<br>• 보내는 정보: 이름, 업체, 전화번호(입력 시), 누른 시각, 위치<br>• 보관: 조치 완료 후 30일 뒤 자동 삭제<br>• 동의하지 않아도 불이익은 없어요. 동의하지 않으면 전화 버튼만 쓸 수 있어요.',
+  agree:'위 내용을 이해했고, 긴급 시 위치 전송에 동의합니다.',cOk:'동의하고 시작',cHint:"다음에 폰에서 '위치 허용' 창이 뜨면 [허용]을 눌러 주세요.",cSkip:'동의하지 않고 전화만 하기',
+  errName:'이름을 입력해 주세요.',errCo:'업체를 선택해 주세요.',errAgree:'동의에 체크해 주세요.',edit:'정보 변경',hold:'3초 길게 누르기',holdMore:'계속 누르고 있어요…',
+  kind_hurt:'🩸 다쳤어요',kind_sick:'🌡️ 몸이 안 좋아요',kind_danger:'⚠️ 위험 발견',kind_etc:'💬 기타',bPick:'동 선택 (선택)',fPick:'층 선택 (선택)',
+  mHint:'급하면 종류·위치를 고르지 않고 바로 눌러도 전송돼요.',callSec:'📞 바로 전화하기',
+  call_health:'보건관리자',call_safety:'안전관리자',call_ssk:'SSK',call_subBoss:'협력사 소장',callTap:'누르면 바로 연결',
+  sentTitle:'도움 요청을 보냈어요',stWait:'⏳ 담당자에게 알림이 갔어요. 확인을 기다리는 중이에요.<br>움직일 수 있으면 안전한 곳에서 기다려 주세요. 급하면 아래 버튼으로 전화하세요.',
+  stGo:'✔ <b>{by}</b>님이 확인했어요. 지금 이동 중이에요.<br>그 자리에서 기다려 주세요.',stDone:'✔ 조치가 완료됐어요. 수고하셨어요.',stCancel:'요청을 취소했어요.',
+  cancel:'잘못 눌렀어요 — 요청 취소',cancelQ:'정말 요청을 취소할까요?',again:'처음 화면으로',
+  locWait:'📍 위치 확인 중…',locOk:'📍 위치 전송됨 (오차 약 {m}m)',locNo:'📍 위치를 못 받았어요 (위치 허용 확인). 고른 동·층으로 전달됐어요.',
+  callOnlyTitle:'📞 바로 전화하기',callOnlyDesc:'위치 전송에 동의하지 않아 전화만 할 수 있어요. 위치 전송을 쓰려면 아래 버튼을 눌러 동의해 주세요.',toConsent:'위치 전송 동의하기',
+  sendFail:'전송 실패 — 아래 버튼으로 바로 전화하세요.',sending:'전송 중…'},
+ en:{title:'Emergency Help',offline:'Connecting… If urgent, use the call buttons below.',cTitle:'Consent to send location',cDesc:'This helps us reach you fast in an emergency. Fill this in only once.',name:'Name',namePh:'e.g. John Kim',company:'Company',coEtc:'Other (type)',coEtcPh:'Company name',phone:'My phone',optional:'(optional)',
+  cBox:'• Location is sent <b>only when you press SOS</b>. It is not collected otherwise.<br>• Sent to: site safety & health managers and subcontractor managers<br>• Data: name, company, phone (if given), time, location<br>• Deleted automatically 30 days after the case is closed<br>• No disadvantage if you do not agree. Without consent you can only use the call buttons.',
+  agree:'I understand and agree to send my location in an emergency.',cOk:'Agree and start',cHint:'When your phone asks for location access, tap [Allow].',cSkip:'Do not agree — calls only',
+  errName:'Please enter your name.',errCo:'Please choose your company.',errAgree:'Please tick the consent box.',edit:'Edit',hold:'Hold 3 seconds',holdMore:'Keep holding…',
+  kind_hurt:'🩸 Injured',kind_sick:'🌡️ Feeling sick',kind_danger:'⚠️ Danger found',kind_etc:'💬 Other',bPick:'Building (optional)',fPick:'Floor (optional)',
+  mHint:'In a hurry? Just press — type and place are optional.',callSec:'📞 Call now',
+  call_health:'Health manager',call_safety:'Safety manager',call_ssk:'SSK',call_subBoss:'Subcontractor chief',callTap:'Tap to call',
+  sentTitle:'Help request sent',stWait:'⏳ Managers have been alerted. Waiting for confirmation.<br>If you can move, wait in a safe place. If urgent, call below.',
+  stGo:'✔ <b>{by}</b> confirmed and is on the way.<br>Please stay where you are.',stDone:'✔ The case has been closed.',stCancel:'Request cancelled.',
+  cancel:'Pressed by mistake — cancel',cancelQ:'Cancel this request?',again:'Back to start',
+  locWait:'📍 Getting location…',locOk:'📍 Location sent (±{m}m)',locNo:'📍 No location (check permission). Sent with chosen building/floor.',
+  callOnlyTitle:'📞 Call now',callOnlyDesc:'You did not consent to location sharing, so only calls are available. Tap below to give consent.',toConsent:'Give consent',
+  sendFail:'Sending failed — please call using the buttons below.',sending:'Sending…'},
+ vi:{title:'Yêu cầu cứu trợ khẩn cấp',offline:'Đang kết nối… Nếu gấp, hãy bấm nút gọi bên dưới.',cTitle:'Đồng ý gửi vị trí khẩn cấp',cDesc:'Chức năng giúp hỗ trợ bạn nhanh khi có sự cố. Chỉ cần nhập một lần.',name:'Họ tên',namePh:'VD: Nguyen Van A',company:'Công ty',coEtc:'Khác (tự nhập)',coEtcPh:'Tên công ty',phone:'Số điện thoại',optional:'(không bắt buộc)',
+  cBox:'• <b>Chỉ khi bấm SOS</b> mới gửi vị trí. Bình thường không thu thập vị trí.<br>• Người nhận: phụ trách an toàn – sức khỏe của nhà thầu chính, quản lý nhà thầu phụ<br>• Thông tin: họ tên, công ty, số điện thoại (nếu nhập), thời gian, vị trí<br>• Tự động xóa sau 30 ngày kể từ khi xử lý xong<br>• Không đồng ý cũng không bị bất lợi. Khi đó chỉ dùng được nút gọi điện.',
+  agree:'Tôi đã hiểu và đồng ý gửi vị trí khi khẩn cấp.',cOk:'Đồng ý và bắt đầu',cHint:"Khi điện thoại hỏi quyền vị trí, hãy bấm [Cho phép].",cSkip:'Không đồng ý — chỉ gọi điện',
+  errName:'Vui lòng nhập họ tên.',errCo:'Vui lòng chọn công ty.',errAgree:'Vui lòng đánh dấu đồng ý.',edit:'Sửa',hold:'Giữ 3 giây',holdMore:'Tiếp tục giữ…',
+  kind_hurt:'🩸 Bị thương',kind_sick:'🌡️ Thấy không khỏe',kind_danger:'⚠️ Phát hiện nguy hiểm',kind_etc:'💬 Khác',bPick:'Tòa nhà (tùy chọn)',fPick:'Tầng (tùy chọn)',
+  mHint:'Gấp thì cứ bấm ngay, không cần chọn.',callSec:'📞 Gọi ngay',
+  call_health:'Quản lý y tế',call_safety:'Quản lý an toàn',call_ssk:'SSK',call_subBoss:'Trưởng nhà thầu phụ',callTap:'Bấm để gọi',
+  sentTitle:'Đã gửi yêu cầu cứu trợ',stWait:'⏳ Đã báo cho người phụ trách. Đang chờ xác nhận.<br>Nếu di chuyển được, hãy chờ ở nơi an toàn. Gấp thì gọi bên dưới.',
+  stGo:'✔ <b>{by}</b> đã xác nhận và đang đến.<br>Hãy ở yên tại chỗ.',stDone:'✔ Đã xử lý xong.',stCancel:'Đã hủy yêu cầu.',
+  cancel:'Bấm nhầm — hủy yêu cầu',cancelQ:'Hủy yêu cầu này?',again:'Về màn hình đầu',
+  locWait:'📍 Đang lấy vị trí…',locOk:'📍 Đã gửi vị trí (sai số ~{m}m)',locNo:'📍 Không lấy được vị trí. Đã gửi theo tòa/tầng đã chọn.',
+  callOnlyTitle:'📞 Gọi ngay',callOnlyDesc:'Bạn chưa đồng ý gửi vị trí nên chỉ có thể gọi điện.',toConsent:'Đồng ý gửi vị trí',
+  sendFail:'Gửi thất bại — hãy gọi điện bằng nút bên dưới.',sending:'Đang gửi…'},
+ zh:{title:'紧急求助',offline:'正在连接… 紧急时请按下方电话按钮。',cTitle:'同意发送紧急位置',cDesc:'用于紧急时快速为您提供帮助。只需填写一次。',name:'姓名',namePh:'例) 张三',company:'所属公司',coEtc:'其他 (自行输入)',coEtcPh:'公司名称',phone:'我的电话',optional:'(选填)',
+  cBox:'• <b>只有按下SOS时</b>才发送位置，平时不收集位置。<br>• 接收人：总包安全保健负责人、分包管理人员<br>• 发送信息：姓名、公司、电话(如填写)、时间、位置<br>• 处理完成30天后自动删除<br>• 不同意也不会有任何不利。不同意时只能使用电话按钮。',
+  agree:'我已了解，同意在紧急时发送位置。',cOk:'同意并开始',cHint:'手机弹出“位置权限”时请点[允许]。',cSkip:'不同意 — 只打电话',
+  errName:'请输入姓名。',errCo:'请选择公司。',errAgree:'请勾选同意。',edit:'修改',hold:'长按3秒',holdMore:'请继续按住…',
+  kind_hurt:'🩸 受伤了',kind_sick:'🌡️ 身体不适',kind_danger:'⚠️ 发现危险',kind_etc:'💬 其他',bPick:'楼栋 (选填)',fPick:'楼层 (选填)',
+  mHint:'紧急时不用选择，直接按下即可。',callSec:'📞 立即拨打',
+  call_health:'保健管理员',call_safety:'安全管理员',call_ssk:'SSK',call_subBoss:'分包所长',callTap:'点击直接拨打',
+  sentTitle:'已发送求助',stWait:'⏳ 已通知负责人，正在等待确认。<br>能移动的话请在安全的地方等待。紧急请拨打下方电话。',
+  stGo:'✔ <b>{by}</b> 已确认，正在赶来。<br>请原地等待。',stDone:'✔ 已处理完毕。',stCancel:'已取消请求。',
+  cancel:'按错了 — 取消请求',cancelQ:'确定取消请求吗？',again:'返回首页',
+  locWait:'📍 正在获取位置…',locOk:'📍 位置已发送 (误差约{m}米)',locNo:'📍 未获取到位置，已按所选楼栋/楼层发送。',
+  callOnlyTitle:'📞 立即拨打',callOnlyDesc:'您未同意发送位置，只能拨打电话。',toConsent:'同意发送位置',
+  sendFail:'发送失败 — 请用下方按钮拨打电话。',sending:'发送中…'},
+ th:{title:'ขอความช่วยเหลือฉุกเฉิน',offline:'กำลังเชื่อมต่อ… หากเร่งด่วนให้กดปุ่มโทรด้านล่าง',cTitle:'ยินยอมส่งตำแหน่งฉุกเฉิน',cDesc:'เพื่อช่วยเหลือคุณได้รวดเร็วเมื่อเกิดเหตุ กรอกเพียงครั้งเดียว',name:'ชื่อ',namePh:'เช่น สมชาย',company:'บริษัท',coEtc:'อื่น ๆ (พิมพ์เอง)',coEtcPh:'ชื่อบริษัท',phone:'เบอร์โทรของฉัน',optional:'(ไม่บังคับ)',
+  cBox:'• ส่งตำแหน่ง<b>เฉพาะเมื่อกด SOS</b> ปกติจะไม่เก็บตำแหน่ง<br>• ผู้รับ: ผู้รับผิดชอบความปลอดภัยและสุขภาพของผู้รับเหมาหลัก และผู้จัดการผู้รับเหมาช่วง<br>• ข้อมูล: ชื่อ บริษัท เบอร์โทร (ถ้ากรอก) เวลา ตำแหน่ง<br>• ลบอัตโนมัติ 30 วันหลังดำเนินการเสร็จ<br>• ไม่ยินยอมก็ไม่มีผลเสีย แต่จะใช้ได้เฉพาะปุ่มโทร',
+  agree:'ฉันเข้าใจและยินยอมส่งตำแหน่งเมื่อฉุกเฉิน',cOk:'ยินยอมและเริ่ม',cHint:'เมื่อโทรศัพท์ถามสิทธิ์ตำแหน่ง ให้กด [อนุญาต]',cSkip:'ไม่ยินยอม — โทรอย่างเดียว',
+  errName:'กรุณากรอกชื่อ',errCo:'กรุณาเลือกบริษัท',errAgree:'กรุณาติ๊กยินยอม',edit:'แก้ไข',hold:'กดค้าง 3 วินาที',holdMore:'กดค้างไว้…',
+  kind_hurt:'🩸 บาดเจ็บ',kind_sick:'🌡️ ไม่สบาย',kind_danger:'⚠️ พบอันตราย',kind_etc:'💬 อื่น ๆ',bPick:'อาคาร (ไม่บังคับ)',fPick:'ชั้น (ไม่บังคับ)',
+  mHint:'เร่งด่วนกดได้เลย ไม่ต้องเลือก',callSec:'📞 โทรทันที',
+  call_health:'ผู้จัดการสุขภาพ',call_safety:'ผู้จัดการความปลอดภัย',call_ssk:'SSK',call_subBoss:'หัวหน้าผู้รับเหมาช่วง',callTap:'กดเพื่อโทร',
+  sentTitle:'ส่งคำขอความช่วยเหลือแล้ว',stWait:'⏳ แจ้งผู้รับผิดชอบแล้ว กำลังรอการยืนยัน<br>ถ้าเคลื่อนที่ได้ ให้รอในที่ปลอดภัย เร่งด่วนให้โทรด้านล่าง',
+  stGo:'✔ <b>{by}</b> ยืนยันแล้ว กำลังไป<br>กรุณารออยู่ที่เดิม',stDone:'✔ ดำเนินการเสร็จแล้ว',stCancel:'ยกเลิกคำขอแล้ว',
+  cancel:'กดผิด — ยกเลิกคำขอ',cancelQ:'ยกเลิกคำขอนี้?',again:'กลับหน้าแรก',
+  locWait:'📍 กำลังหาตำแหน่ง…',locOk:'📍 ส่งตำแหน่งแล้ว (คลาดเคลื่อน ~{m} ม.)',locNo:'📍 ไม่ได้รับตำแหน่ง ส่งตามอาคาร/ชั้นที่เลือก',
+  callOnlyTitle:'📞 โทรทันที',callOnlyDesc:'คุณไม่ได้ยินยอมส่งตำแหน่ง จึงใช้ได้เฉพาะการโทร',toConsent:'ยินยอมส่งตำแหน่ง',
+  sendFail:'ส่งไม่สำเร็จ — กรุณาโทรด้วยปุ่มด้านล่าง',sending:'กำลังส่ง…'},
+ ru:{title:'Экстренная помощь',offline:'Подключение… Если срочно — звоните кнопками ниже.',cTitle:'Согласие на передачу местоположения',cDesc:'Это поможет быстро прийти на помощь. Заполняется один раз.',name:'Имя',namePh:'напр. Иван',company:'Компания',coEtc:'Другое (ввести)',coEtcPh:'Название компании',phone:'Мой телефон',optional:'(необязательно)',
+  cBox:'• Местоположение отправляется <b>только при нажатии SOS</b>. В остальное время не собирается.<br>• Получатели: ответственные по охране труда генподрядчика и руководители субподрядчиков<br>• Данные: имя, компания, телефон (если указан), время, место<br>• Автоматически удаляется через 30 дней после закрытия случая<br>• Отказ не влечёт последствий. Без согласия доступны только кнопки звонка.',
+  agree:'Я понимаю и согласен(на) передавать местоположение в экстренной ситуации.',cOk:'Согласиться и начать',cHint:'Когда телефон запросит доступ к геолокации, нажмите [Разрешить].',cSkip:'Не согласен — только звонки',
+  errName:'Введите имя.',errCo:'Выберите компанию.',errAgree:'Отметьте согласие.',edit:'Изменить',hold:'Удерживайте 3 секунды',holdMore:'Продолжайте держать…',
+  kind_hurt:'🩸 Травма',kind_sick:'🌡️ Плохо себя чувствую',kind_danger:'⚠️ Опасность',kind_etc:'💬 Другое',bPick:'Корпус (необяз.)',fPick:'Этаж (необяз.)',
+  mHint:'Срочно? Просто нажмите — выбор необязателен.',callSec:'📞 Позвонить',
+  call_health:'Менеджер по здоровью',call_safety:'Менеджер по безопасности',call_ssk:'SSK',call_subBoss:'Начальник субподрядчика',callTap:'Нажмите для звонка',
+  sentTitle:'Запрос о помощи отправлен',stWait:'⏳ Ответственные оповещены. Ждём подтверждения.<br>Если можете двигаться — ждите в безопасном месте. Срочно — звоните ниже.',
+  stGo:'✔ <b>{by}</b> подтвердил(а) и уже идёт.<br>Оставайтесь на месте.',stDone:'✔ Случай закрыт.',stCancel:'Запрос отменён.',
+  cancel:'Нажал(а) по ошибке — отменить',cancelQ:'Отменить запрос?',again:'На главную',
+  locWait:'📍 Определяем место…',locOk:'📍 Место отправлено (±{m} м)',locNo:'📍 Место не получено. Отправлено по выбранному корпусу/этажу.',
+  callOnlyTitle:'📞 Позвонить',callOnlyDesc:'Без согласия на геолокацию доступны только звонки.',toConsent:'Дать согласие',
+  sendFail:'Ошибка отправки — позвоните кнопками ниже.',sending:'Отправка…'}
+};
+const LANGS = [['ko','한국어'],['en','English'],['vi','Tiếng Việt'],['zh','中文'],['th','ไทย'],['ru','Русский']];
+let lang = 'ko';
+try{ lang = localStorage.getItem(LS.lang) || (navigator.language||'ko').slice(0,2); }catch(e){}
+if(!T[lang]) lang = 'ko';
+const t = (k, v={}) => (T[lang][k] ?? T.ko[k] ?? k).replace(/\{(\w+)\}/g, (_,x)=> v[x] ?? '');
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ── 상태 ───────────────────────────────────────── */
+let me = null, kind = '', db = null, ready = false, activeId = null, activeRef = null, lastRec = null;
+try{ me = JSON.parse(localStorage.getItem(LS.me) || 'null'); activeId = localStorage.getItem(LS.active) || null; }catch(e){}
+let deviceId = '';
+try{ deviceId = localStorage.getItem(LS.dev) || ''; if(!deviceId){ deviceId = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); localStorage.setItem(LS.dev, deviceId); } }catch(e){ deviceId = 'd' + Date.now().toString(36); }
+
+function toast(msg){ const el=$('toast'); el.textContent=msg; el.style.display='block'; clearTimeout(toast._t); toast._t=setTimeout(()=>el.style.display='none', 3200); }
+function show(id){ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on', v.id===id)); window.scrollTo(0,0); }
+
+/* ── 화면 그리기 ─────────────────────────────────── */
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(el=>{ const v = t(el.dataset.t); if(el.dataset.html) el.innerHTML = v; else el.textContent = v; });
+  document.querySelectorAll('[data-ph]').forEach(el=> el.placeholder = t(el.dataset.ph));
+  $('langs').innerHTML = LANGS.map(([c,n])=>`<button type="button" data-l="${c}" class="${c===lang?'on':''}">${n}</button>`).join('');
+  $('langs').querySelectorAll('button').forEach(b=> b.onclick = ()=>{ lang=b.dataset.l; try{localStorage.setItem(LS.lang,lang);}catch(e){} applyLang(); });
+  // 업체
+  const coVal = $('fCo').value;
+  $('fCo').innerHTML = `<option value="">—</option>` + COMPANIES.map(c=>`<option>${esc(c)}</option>`).join('') + `<option value="__etc">${esc(t('coEtc'))}</option>`;
+  $('fCo').value = coVal || (me && (COMPANIES.includes(me.company) ? me.company : (me.company ? '__etc' : ''))) || COMPANIES[0];
+  // 종류·동·층
+  $('kinds').innerHTML = KINDS.map(k=>`<button type="button" data-k="${k}" class="${k===kind?'on':''}">${esc(t('kind_'+k))}</button>`).join('');
+  $('kinds').querySelectorAll('button').forEach(b=> b.onclick = ()=>{ kind = (kind===b.dataset.k ? '' : b.dataset.k); applyLang(); });
+  const bv=$('fB').value, fv=$('fF').value;
+  $('fB').innerHTML = `<option value="">${esc(t('bPick'))}</option>` + BUILDINGS.map(b=>`<option>${b}</option>`).join('');
+  $('fF').innerHTML = `<option value="">${esc(t('fPick'))}</option>` + FLOORS.map(f=>`<option>${f}</option>`).join('');
+  $('fB').value = bv; $('fF').value = fv;
+  // 전화
+  const callHtml = CALLS.map((c,i)=>`<a href="tel:${c.tel}" class="${i>1?'s':''}">${esc(t('call_'+c.k))}<small>${esc(t('callTap'))}</small></a>`).join('');
+  ['calls1','calls2','calls3'].forEach(id=> $(id).innerHTML = callHtml);
+  if(me) $('whoTxt').textContent = `${me.name} · ${me.company}`;
+  if(lastRec) renderSent(lastRec);
+}
+
+/* ── 동의 ───────────────────────────────────────── */
+$('fCo').onchange = ()=> $('fCoEtc').style.display = $('fCo').value==='__etc' ? 'block' : 'none';
+function fillConsent(){
+  if(!me) return;
+  $('fName').value = me.name || ''; $('fPhone').value = me.phone || '';
+  if(me.company && !COMPANIES.includes(me.company)){ $('fCo').value='__etc'; $('fCoEtc').style.display='block'; $('fCoEtc').value=me.company; }
+  else $('fCo').value = me.company || COMPANIES[0];
+  $('fAgree').checked = true;
+}
+$('cOk').onclick = ()=>{
+  const err=$('cErr'); err.style.display='none';
+  const name=$('fName').value.trim(); let co=$('fCo').value; if(co==='__etc') co=$('fCoEtc').value.trim();
+  if(!name){ err.textContent=t('errName'); err.style.display='block'; return; }
+  if(!co){ err.textContent=t('errCo'); err.style.display='block'; return; }
+  if(!$('fAgree').checked){ err.textContent=t('errAgree'); err.style.display='block'; return; }
+  me = { name, company:co, phone:$('fPhone').value.trim(), consentAt:Date.now(), lang };
+  try{ localStorage.setItem(LS.me, JSON.stringify(me)); }catch(e){}
+  if(db) db.ref('sosConsent/'+deviceId).set({ name:me.name, company:me.company, phone:me.phone||'', at:me.consentAt, lang }).catch(()=>{});
+  // 위치 권한을 미리 받아 둡니다 (실제 위치는 SOS 누를 때만 보냅니다)
+  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(()=>{}, ()=>{}, { timeout:10000, maximumAge:600000 });
+  applyLang(); show('vMain');
+};
+$('cSkip').onclick = ()=> show('vCallOnly');
+$('toConsent').onclick = ()=>{ fillConsent(); show('vConsent'); };
+$('editMe').onclick = e=>{ e.preventDefault(); fillConsent(); show('vConsent'); };
+
+/* ── SOS 길게 누르기 ─────────────────────────────── */
+const HOLD_MS = 3000, RING = 691;
+let holdStart = 0, holdRaf = 0, sending = false;
+const sosBtn = $('sosBtn'), ring = $('ring');
+function holdTick(){
+  const p = Math.min(1, (Date.now()-holdStart)/HOLD_MS);
+  ring.style.strokeDashoffset = RING*(1-p);
+  if(navigator.vibrate && p<1 && Math.floor(p*3)!==holdTick._s){ holdTick._s=Math.floor(p*3); navigator.vibrate(40); }
+  if(p>=1){ endHold(true); return; }
+  holdRaf = requestAnimationFrame(holdTick);
+}
+function startHold(e){ if(sending) return; e.preventDefault(); holdStart=Date.now(); holdTick._s=-1; sosBtn.classList.add('hold'); sosBtn.querySelector('small').textContent=t('holdMore'); holdRaf=requestAnimationFrame(holdTick); }
+function endHold(done){
+  cancelAnimationFrame(holdRaf); sosBtn.classList.remove('hold'); ring.style.strokeDashoffset = RING;
+  sosBtn.querySelector('small').textContent = t('hold');
+  if(done===true) sendSOS();
+}
+sosBtn.addEventListener('pointerdown', startHold);
+['pointerup','pointerleave','pointercancel'].forEach(ev=> sosBtn.addEventListener(ev, ()=>{ if(holdStart && Date.now()-holdStart < HOLD_MS) endHold(false); holdStart=0; }));
+sosBtn.addEventListener('contextmenu', e=>e.preventDefault());
+
+function sendSOS(){
+  if(sending) return; sending = true;
+  if(navigator.vibrate) navigator.vibrate([200,100,200]);
+  const rec = { name:me.name, company:me.company, phone:me.phone||'', kind:kind||'', b:$('fB').value||'', f:$('fF').value||'',
+    at:Date.now(), status:'wait', device:deviceId, lang, loc:'pending' };
+  lastRec = rec;
+  show('vSent'); renderSent(rec);
+  if(!db || !ready){
+    // 서버 연결 전이면 연결되는 즉시 보냅니다
+    $('sentSt').className='st w'; $('sentSt').innerHTML = esc(t('sending'));
+    const iv = setInterval(()=>{ if(db && ready){ clearInterval(iv); pushSOS(rec); } }, 500);
+    setTimeout(()=>{ if(!ready){ toast(t('sendFail')); } }, 12000);
+    return;
+  }
+  pushSOS(rec);
+}
+function pushSOS(rec){
+  const ref = db.ref('sos').push();
+  activeId = ref.key; try{ localStorage.setItem(LS.active, activeId); }catch(e){}
+  ref.set(rec).then(()=>{ watchActive(); getLoc(ref); }).catch(err=>{ sending=false; toast(t('sendFail')); console.error(err); });
+}
+function getLoc(ref){
+  if(!navigator.geolocation){ ref.update({ loc:'none' }); return; }
+  navigator.geolocation.getCurrentPosition(p=>{
+    ref.update({ loc:'ok', lat:+p.coords.latitude.toFixed(6), lng:+p.coords.longitude.toFixed(6), acc:Math.round(p.coords.accuracy||0), locAt:Date.now() });
+  }, ()=> ref.update({ loc:'none' }), { enableHighAccuracy:true, timeout:15000, maximumAge:30000 });
+}
+function watchActive(){
+  if(activeRef) activeRef.off();
+  if(!activeId || !db) return;
+  activeRef = db.ref('sos/'+activeId);
+  activeRef.on('value', snap=>{
+    const v = snap.val();
+    if(!v){ clearActive(); show(me ? 'vMain' : 'vConsent'); return; }
+    lastRec = v; renderSent(v);
+    if(!document.getElementById('vSent').classList.contains('on')) show('vSent');
+  });
+}
+function clearActive(){ if(activeRef) activeRef.off(); activeRef=null; activeId=null; lastRec=null; sending=false; try{ localStorage.removeItem(LS.active); }catch(e){} }
+function hhmm(ms){ const d=new Date(ms); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function renderSent(v){
+  const place = [v.b, v.f].filter(Boolean).join(' ');
+  $('sentMeta').textContent = [hhmm(v.at), place, v.kind ? t('kind_'+v.kind).replace(/^\S+\s/,'') : ''].filter(Boolean).join(' · ');
+  $('sentLoc').textContent = v.loc==='ok' ? t('locOk',{m:(v.acc!=null?v.acc:'?')}) : v.loc==='none' ? t('locNo') : t('locWait');
+  const st = $('sentSt'), ic = $('sentIcon');
+  const closed = v.status==='done' || v.status==='cancel';
+  if(v.status==='go'){ st.className='st g'; st.innerHTML = t('stGo',{by:esc(v.by||'')}); ic.className='okc'; ic.textContent='✓'; }
+  else if(v.status==='done'){ st.className='st d'; st.innerHTML = t('stDone'); ic.className='okc'; ic.textContent='✓'; }
+  else if(v.status==='cancel'){ st.className='st d'; st.innerHTML = t('stCancel'); ic.className='okc'; ic.style.background='#9CA3AF'; ic.textContent='✕'; }
+  else { st.className='st w'; st.innerHTML = t('stWait'); ic.className='okc wait'; ic.textContent='!'; ic.style.background=''; }
+  if(v.status!=='cancel') ic.style.background='';
+  $('cancelBtn').style.display = closed || v.status==='go' ? 'none' : 'block';
+  $('againBtn').style.display = closed ? 'block' : 'none';
+}
+$('cancelBtn').onclick = ()=>{
+  if(!confirm(t('cancelQ'))) return;
+  if(db && activeId) db.ref('sos/'+activeId).update({ status:'cancel', cancelAt:Date.now(), doneAt:Date.now() });
+};
+$('againBtn').onclick = ()=>{ clearActive(); kind=''; $('fB').value=''; $('fF').value=''; applyLang(); show(me ? 'vMain' : 'vConsent'); };
+
+/* ── Firebase ───────────────────────────────────── */
+function initFb(){
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    firebase.auth().signInAnonymously().catch(e=>{ console.error(e); $('offline').style.display='block'; });
+    firebase.auth().onAuthStateChanged(u=>{
+      if(!u) return;
+      ready = true; $('offline').style.display='none';
+      if(activeId) watchActive();
+    });
+    db.ref('.info/connected').on('value', s=>{ $('offline').style.display = s.val()===false && ready ? 'block' : 'none'; });
+    setTimeout(()=>{ if(!ready) $('offline').style.display='block'; }, 6000);
+  }catch(e){ console.error(e); $('offline').style.display='block'; }
+}
+
+/* ── 시작 ───────────────────────────────────────── */
+applyLang();
+if(activeId && me){ show('vSent'); $('sentSt').innerHTML = t('stWait'); }
+else if(me) show('vMain');
+else show('vConsent');
+initFb();
+</script>
+</body>
+</html>
