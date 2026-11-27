@@ -1367,6 +1367,29 @@
 .map-mark{position:absolute;transform:translate(-50%,-50%);z-index:3;pointer-events:none;font-weight:800;font-size:11px;line-height:1;padding:3px 6px;border-radius:4px;white-space:nowrap}
   .map-mark.gate{background:#E01226;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
   .map-mark.shop{background:#FFE600;color:#111}
+  /* ── 긴급 요청(SOS) ── */
+  #sosAlerts{position:sticky;top:0;z-index:60}
+  .sos-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#E01226;color:#fff;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.25)}
+  .sos-bar.wait{animation:sosBlink 1s infinite}
+  .sos-bar.go{background:#B45309}
+  @keyframes sosBlink{50%{background:#9F0D1B}}
+  .sos-bar .ic{font-size:26px;line-height:1}
+  .sos-bar .tx{flex:1;min-width:200px}
+  .sos-bar .tx b{font-size:16px;display:block}
+  .sos-bar .tx span{font-size:13px;opacity:.95}
+  .sos-bar .act{display:flex;gap:6px;flex-wrap:wrap}
+  .sos-bar .act button,.sos-bar .act a{border:0;border-radius:8px;padding:8px 12px;font-weight:800;font-size:13px;background:#fff;color:#C40F22;text-decoration:none;cursor:pointer;font-family:inherit}
+  .sos-bar .act .w{background:rgba(255,255,255,.18);color:#fff}
+  .sos-pin{position:absolute;transform:translate(-50%,-50%);z-index:8;width:30px;height:30px;border-radius:50%;background:#E01226;border:3px solid #fff;animation:sosPulse 1.2s infinite;pointer-events:none}
+  .sos-pin.go{background:#D97706;animation:none}
+  .sos-tag{position:absolute;transform:translate(-50%,-160%);z-index:8;background:#E01226;color:#fff;font-weight:800;font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none}
+  .sos-tag.go{background:#D97706}
+  @keyframes sosPulse{0%{box-shadow:0 0 0 0 rgba(224,18,38,.7)}100%{box-shadow:0 0 0 24px rgba(224,18,38,0)}}
+  .sos-hist .li{display:flex;gap:8px;align-items:center;padding:10px 4px;border-top:1px solid var(--line);font-size:13px;flex-wrap:wrap}
+  .sos-hist .li:first-child{border-top:0}
+  .sos-hist .st{font-size:11.5px;font-weight:800;padding:3px 8px;border-radius:20px}
+  .sos-hist .st.wait{background:#FDECEE;color:#C40F22}.sos-hist .st.go{background:#FEF3C7;color:#92400E}.sos-hist .st.done{background:#DCFCE7;color:#166534}.sos-hist .st.cancel{background:#F3F4F6;color:#6B7280}
+  .sos-hist em{font-style:normal;color:var(--ink-400);margin-left:auto;font-size:12px}
   .topbanner{display:block;width:100%;height:auto;background:#fff}
   .slimbanner{display:none}
   @media (min-width:700px){
@@ -1411,6 +1434,7 @@
     </div>
   </div>
 
+  <div id="sosAlerts"></div>
   <div class="day-strip" id="dayStrip"></div>
   <div class="date-row">
     <div class="date-picker">
@@ -1782,6 +1806,13 @@
       </div>
 
       <div id="adminPanel" style="display:none;">
+        <div class="form-card">
+          <h3>🆘 긴급 요청 기록 (30일 보관)</h3>
+          <p class="hint" style="margin-top:0;">근로자가 QR(긴급 전용 주소)에서 SOS를 누른 기록이에요. 조치 완료·취소 후 30일이 지나면 자동으로 지워져요. 긴급 전용 주소: <a href="./sos.html" target="_blank">sos.html 열어 보기</a></p>
+          <div class="sos-hist" id="sosHist"></div>
+          <button type="button" class="export-btn" onclick="exportSosCsv()">기록 엑셀(CSV)로 내보내기</button>
+        </div>
+
         <div class="form-card">
           <h3>일일 고위험 작업 현황 내보내기</h3>
           <p class="hint" style="margin-top:0;">카카오톡 전송용. 대시보드에서 보고 있는 날짜(<b id="imgExportDateLabel"></b>)의 현황을 색상·열 그대로 한 장의 PNG로 저장합니다. 엑셀을 PDF로 바꿀 때 색이 빠지고 열이 잘리는 문제가 없습니다.</p>
@@ -2885,6 +2916,118 @@ function attachDemoListener(){
   }, err=>console.error('철거 기록 동기화 오류', err));
 }
 
+/* ── 긴급 요청(SOS) — sos.html 에서 근로자가 보낸 요청을 실시간으로 받습니다 ── */
+const SOS_KEEP_DAYS = 30;
+const SOS_KIND = { hurt:'🩸 다쳤어요', sick:'🌡️ 몸이 안 좋아요', danger:'⚠️ 위험 발견', etc:'💬 기타' };
+const SOS_ST = { wait:'대기', go:'출동 중', done:'조치 완료', cancel:'취소' };
+state.sos = {};
+let sosMuted = false, sosAudio = null, sosBeepIv = null, sosFirstLoad = true;
+const sosSeen = new Set();
+function sosHM(ms){ const d=new Date(ms); return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function sosPlace(r){ return [r.b, r.f].filter(Boolean).join(' ') || '위치 선택 안 함'; }
+function sosKindTxt(r){ return (SOS_KIND[r.kind]||'').replace(/^\S+\s/,'') || '종류 미선택'; }
+function sosActive(){ return Object.entries(state.sos).filter(([,r])=>r && (r.status==='wait'||r.status==='go')).sort((a,b)=>(b[1].at||0)-(a[1].at||0)); }
+function attachSosListener(){
+  fbDb.ref('sos').on('value', snap=>{
+    state.sos = snap.val() || {};
+    // 30일 지난 기록 자동 삭제 (조치 완료·취소 시각 기준, 처리 안 된 건은 접수 시각 기준)
+    const cut = Date.now() - SOS_KEEP_DAYS*86400000;
+    Object.entries(state.sos).forEach(([id,r])=>{ const base = (r && (r.doneAt || r.at)) || 0; if(base && base < cut) fbDb.ref('sos/'+id).remove().catch(()=>{}); });
+    Object.entries(state.sos).forEach(([id,r])=>{
+      if(!r || sosSeen.has(id)) return;
+      sosSeen.add(id);
+      if(r.status==='wait' && (!sosFirstLoad || Date.now()-(r.at||0) < 10*60000)) sosNotify(r);
+    });
+    sosFirstLoad = false;
+    renderSos();
+  }, err=>console.error('긴급 요청 동기화 오류', err));
+}
+function sosNotify(r){
+  try{ if('Notification' in window && Notification.permission==='granted'){
+    new Notification('🆘 긴급 요청 · ' + sosKindTxt(r), { body: `${r.name} (${r.company}) · ${sosPlace(r)}`, tag:'sos', requireInteraction:true });
+  }}catch(e){}
+  if(navigator.vibrate) navigator.vibrate([400,200,400]);
+}
+function sosBeep(){
+  if(sosMuted) return;
+  try{
+    if(!sosAudio) sosAudio = new (window.AudioContext||window.webkitAudioContext)();
+    if(sosAudio.state==='suspended') sosAudio.resume();
+    [0,0.35].forEach(off=>{
+      const o=sosAudio.createOscillator(), g=sosAudio.createGain(), t0=sosAudio.currentTime+off;
+      o.type='square'; o.frequency.value = off ? 660 : 990;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.25, t0+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+0.3);
+      o.connect(g); g.connect(sosAudio.destination); o.start(t0); o.stop(t0+0.32);
+    });
+  }catch(e){}
+}
+// 브라우저는 화면을 한 번 누르기 전에는 소리를 막으므로, 첫 클릭 때 소리 장치를 깨워 둡니다
+document.addEventListener('pointerdown', ()=>{ try{ if(!sosAudio) sosAudio = new (window.AudioContext||window.webkitAudioContext)(); if(sosAudio.state==='suspended') sosAudio.resume(); }catch(e){} }, { once:true });
+function renderSos(){
+  const act = sosActive();
+  const waiting = act.some(([,r])=>r.status==='wait');
+  if(waiting && !sosBeepIv && !sosMuted){ sosBeep(); sosBeepIv = setInterval(sosBeep, 1600); }
+  if(!waiting){ if(sosBeepIv){ clearInterval(sosBeepIv); sosBeepIv = null; } sosMuted = false; }
+  const box = document.getElementById('sosAlerts');
+  if(box) box.innerHTML = act.map(([id,r])=>{
+    const loc = r.loc==='ok' ? `GPS 오차 약 ${r.acc!=null?r.acc:'?'}m` : r.loc==='none' ? 'GPS 위치 없음' : 'GPS 확인 중…';
+    const map = r.loc==='ok' ? `<a href="https://map.kakao.com/link/map/${encodeURIComponent(r.name+' SOS')},${r.lat},${r.lng}" target="_blank" rel="noopener" class="w">지도·길찾기</a>` : '';
+    const tel = r.phone ? `<a href="tel:${esc(String(r.phone).replace(/[^0-9+]/g,''))}" class="w">근로자에게 전화</a>` : '';
+    const btn = r.status==='wait'
+      ? `<button type="button" onclick="sosAck('${id}')">확인·출동</button>`
+      : `<button type="button" onclick="sosDone('${id}')">조치 완료</button>`;
+    const who = r.status==='go' ? ` · ${esc(r.by||'')} 출동 중` : '';
+    const mute = r.status==='wait' && !sosMuted ? `<button type="button" class="w" onclick="sosMute()">🔇 소리 끄기</button>` : '';
+    return `<div class="sos-bar ${r.status}"><div class="ic">🆘</div><div class="tx"><b>긴급 요청 · ${esc(sosKindTxt(r))}</b><span>${esc(r.name)} (${esc(r.company)}) · ${esc(sosPlace(r))} · ${sosHM(r.at)} · ${loc}${who}</span></div><div class="act">${btn}${tel}${map}${mute}</div></div>`;
+  }).join('');
+  renderSosPins();
+  renderSosHist();
+}
+function renderSosPins(){
+  const wrap = document.getElementById('mapWrap'); if(!wrap) return;
+  wrap.querySelectorAll('.sos-pin,.sos-tag').forEach(el=>el.remove());
+  sosActive().forEach(([,r],i)=>{
+    const p = r.b ? buildingPos(r.b) : { x:51, y:88 };
+    const x = Math.min(95, Math.max(5, p.x + i*2.5)), y = Math.min(90, Math.max(14, p.y));
+    const pin = document.createElement('div'); pin.className = 'sos-pin ' + r.status; pin.style.left = x+'%'; pin.style.top = y+'%';
+    const tag = document.createElement('div'); tag.className = 'sos-tag ' + r.status; tag.style.left = x+'%'; tag.style.top = y+'%';
+    tag.textContent = (r.status==='wait' ? '🆘 ' : '🚶 ') + r.name;
+    wrap.appendChild(pin); wrap.appendChild(tag);
+  });
+}
+function renderSosHist(){
+  const el = document.getElementById('sosHist'); if(!el) return;
+  const rows = Object.entries(state.sos).filter(([,r])=>r).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
+  el.innerHTML = rows.length ? rows.map(([,r])=>`<div class="li"><span class="st ${esc(r.status)}">${SOS_ST[r.status]||esc(r.status)}</span><b>${esc(r.name)}</b> ${esc(r.company)} · ${esc(sosPlace(r))} · ${esc(sosKindTxt(r))}${r.by?' · 확인 '+esc(r.by):''}<em>${sosHM(r.at)}</em></div>`).join('')
+    : '<div class="li" style="color:var(--ink-400)">최근 30일 동안 긴급 요청이 없어요.</div>';
+}
+function sosAskName(){
+  let by = ''; try{ by = localStorage.getItem(DEMO_BY_KEY) || ''; }catch(e){}
+  by = prompt('확인하는 분 이름을 입력해 주세요 (근로자 화면에 표시돼요)', by || '');
+  if(by===null) return null; by = by.trim(); if(!by) return null;
+  try{ localStorage.setItem(DEMO_BY_KEY, by); }catch(e){}
+  return by;
+}
+function sosAck(id){
+  const by = sosAskName(); if(!by) return;
+  fbDb.ref('sos/'+id).update({ status:'go', by, ackAt:Date.now() }).then(()=>showToast('근로자 화면에 "'+by+'님 이동 중"이 떠요.')).catch(e=>showToast('⚠︎ 저장 실패: '+e.message));
+}
+function sosDone(id){
+  if(!confirm('조치 완료로 바꿀까요?')) return;
+  fbDb.ref('sos/'+id).update({ status:'done', doneAt:Date.now() }).then(()=>showToast('조치 완료로 바꿨어요.')).catch(e=>showToast('⚠︎ 저장 실패: '+e.message));
+}
+function sosMute(){ sosMuted = true; if(sosBeepIv){ clearInterval(sosBeepIv); sosBeepIv=null; } renderSos(); }
+function exportSosCsv(){
+  const rows = Object.values(state.sos).filter(Boolean).sort((a,b)=>(a.at||0)-(b.at||0));
+  const head = ['접수시각','상태','이름','업체','전화','종류','동','층','GPS위도','GPS경도','오차(m)','확인자','확인시각','완료시각'];
+  const f = ms => ms ? new Date(ms).toLocaleString('ko-KR') : '';
+  const lines = [head].concat(rows.map(r=>[f(r.at),SOS_ST[r.status]||r.status,r.name,r.company,r.phone||'',sosKindTxt(r),r.b||'',r.f||'',r.lat||'',r.lng||'',r.acc||'',r.by||'',f(r.ackAt),f(r.doneAt)]));
+  const csv = '﻿' + lines.map(l=>l.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = '긴급요청기록_' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
+}
+
 function switchView(name){
   state.view = name;
   document.body.dataset.view = name;   // 화면별 스타일(등록 화면의 날짜 줄 고정 등)에 사용
@@ -3303,6 +3446,7 @@ function renderDashboard(){
 
   const mapWrap = document.getElementById('mapWrap');
   renderPinsInto(mapWrap, mapTasks, mapPumps);
+  try{ renderSosPins(); }catch(e){}
   if(!mapWrap._tapBound){ mapWrap.addEventListener('click', onMapAreaTap); mapWrap._tapBound = true; }
 
   document.getElementById('pinCountMeta').textContent = `작업 ${mapTasks.length} · 양수기 ${mapPumps.length}`;
@@ -4941,8 +5085,8 @@ function runConfirm(){
    비워두면 알림 기능이 화면에 나타나지 않습니다. (비공개 키·발송 키는 절대 여기에 쓰지 않습니다) */
 const VAPID_PUBLIC_KEY = '';                                   // 예: 'BNc3…' (87자)
 const PUSH_WORKER_URL  = 'https://sos-push.YOUR-ACCOUNT.workers.dev';  // Cloudflare Worker 주소
-const ZONE_PASSWORD = '1004';     // 책임구역 점검 저장 (점검자 전용)
-const ACTION_PASSWORD = '5072';
+const ZONE_PASSWORD = '9907';     // 책임구역 점검 저장 (점검자 전용)
+const ACTION_PASSWORD = '9907';
 let _actionPwCallback = null;
 let _actionPwAlwaysAsk = false;
 /* 하루에 작업을 열 건 올리면 비밀번호를 열 번 쳐야 해서, 한 번 확인하면
@@ -5036,7 +5180,7 @@ function runActionPassword(){
    ADMIN (관리) — 비밀번호 게이트
 ========================================================= */
 let adminUnlocked = false;
-const ADMIN_PASSWORD = '6942';
+const ADMIN_PASSWORD = '9907';
 function tryAdminLogin(){
   const input = document.getElementById('adminPwInput');
   if(input.value === ADMIN_PASSWORD){
@@ -5486,6 +5630,7 @@ function attachFirebaseListeners(){
   });
 
   try{ attachDemoListener(); }catch(e){ console.error(e); }
+  try{ attachSosListener(); }catch(e){ console.error(e); }
   fbDb.ref('settings/notice').on('value', snap=>{
     const val = snap.val();
     if(val){
